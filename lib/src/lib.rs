@@ -1,4 +1,4 @@
-use darling::{ast, FromDeriveInput, FromVariant};
+use darling::{ast, FromDeriveInput, FromVariant, FromField};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::DeriveInput;
@@ -28,15 +28,22 @@ impl ToTokens for BaseReceiver {
         } = *self;
 
         let fields = data.as_ref().take_enum().expect("Should never be enum");
-        let mut code_tokens = Vec::<proc_macro2::TokenStream>::new();
-        let mut message_tokens = Vec::<proc_macro2::TokenStream>::new();
+        let mut code_tokens = Vec::<TokenStream>::new();
+        let mut message_tokens = Vec::<TokenStream>::new();
 
         fields.into_iter().for_each(|f| {
             let field_ident = &f.ident;
 
+            let var = match &f.fields.style {
+                ast::Style::Tuple => {
+                    quote! { (_) }
+                },
+                _ => quote! {}
+            };
+
             if let Some(code) = f.code {
                 code_tokens.push(quote! {
-                    Self::#field_ident => #code,
+                    Self::#field_ident #var => #code,
                 });
             }
 
@@ -44,7 +51,7 @@ impl ToTokens for BaseReceiver {
                 let message = f.message.clone().unwrap();
 
                 message_tokens.push(quote! {
-                    Self::#field_ident => Some(#message),
+                    Self::#field_ident #var => Some(#message),
                 })
             }
 
@@ -59,22 +66,25 @@ impl ToTokens for BaseReceiver {
                     }
                 }
                 fn http_message(&self) -> Option<&'static str> {
-                        match &self {
-                            #(#message_tokens)*
-                            _ => None
-                        }
+                    match &self {
+                        #(#message_tokens)*
+                        _ => None
                     }
                 }
+            }
         })
     }
-
-
 }
 
 #[derive(Debug, FromVariant)]
 #[darling(attributes(http))]
 struct FieldReceiver {
     ident: syn::Ident,
+    fields: darling::ast::Fields<FieldFieldReceiver>,
+
     code: Option<u16>,
     message: Option<String>,
 }
+
+#[derive(Debug, FromField)]
+struct FieldFieldReceiver {}

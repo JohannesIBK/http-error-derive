@@ -1,6 +1,6 @@
 [package]
 name = "http-error-derive"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 authors = ["JohannesIBK <mail@greuter.dev>"]
 description = "Create an enum with error message and http code"
