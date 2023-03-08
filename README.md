@@ -19,6 +19,6 @@ enum ApiError {
 ```rust
 fn main() {
     println!("{}", ApiError::Forbidden.http_code()); // 403u16
-    println!("{:?}", ApiError::Forbidden.http_code()); // Some("You have no permission to access this resource")
+    println!("{:?}", ApiError::Forbidden.http_message()); // Some("You have no permission to access this resource")
 }
 ```
