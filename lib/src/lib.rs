@@ -1,11 +1,10 @@
-use darling::{ast, FromDeriveInput, FromVariant, FromField};
+use darling::{ast, FromDeriveInput, FromField, FromVariant};
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::DeriveInput;
 
 #[proc_macro_derive(HttpError, attributes(http))]
 pub fn parser(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let ast = syn::parse_macro_input!(input as DeriveInput);
+    let ast = syn::parse_macro_input!(input);
     let gen = BaseReceiver::from_derive_input(&ast).unwrap();
 
     quote!(#gen).into()
@@ -37,8 +36,8 @@ impl ToTokens for BaseReceiver {
             let var = match &f.fields.style {
                 ast::Style::Tuple => {
                     quote! { (_) }
-                },
-                _ => quote! {}
+                }
+                _ => quote! {},
             };
 
             if let Some(code) = f.code {
@@ -54,7 +53,6 @@ impl ToTokens for BaseReceiver {
                     Self::#field_ident #var => Some(#message),
                 })
             }
-
         });
 
         tokens.extend(quote! {
@@ -80,8 +78,7 @@ impl ToTokens for BaseReceiver {
 #[darling(attributes(http))]
 struct FieldReceiver {
     ident: syn::Ident,
-    fields: darling::ast::Fields<FieldFieldReceiver>,
-
+    fields: ast::Fields<FieldFieldReceiver>,
     code: Option<u16>,
     message: Option<String>,
 }

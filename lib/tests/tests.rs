@@ -32,7 +32,10 @@ mod tests {
     #[test]
     fn error_with_message() {
         assert_eq!(Test::ErrorWithMessage.http_code(), 501);
-        assert_eq!(Test::ErrorWithMessage.http_message(), Some("Hello my friend, what are you doing here"));
+        assert_eq!(
+            Test::ErrorWithMessage.http_message(),
+            Some("Hello my friend, what are you doing here")
+        );
     }
 
     #[test]
