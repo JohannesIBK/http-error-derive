@@ -57,13 +57,13 @@ impl ToTokens for BaseReceiver {
 
         tokens.extend(quote! {
             impl #ident {
-                fn http_code(&self) -> u16 {
+                pub fn http_code(&self) -> u16 {
                     match &self {
                         #(#code_tokens)*
                         _ => #default_code
                     }
                 }
-                fn http_message(&self) -> Option<&'static str> {
+                pub fn http_message(&self) -> Option<&'static str> {
                     match &self {
                         #(#message_tokens)*
                         _ => None
