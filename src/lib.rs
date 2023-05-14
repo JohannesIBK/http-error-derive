@@ -15,7 +15,6 @@ pub fn parser(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 struct BaseReceiver {
     ident: syn::Ident,
     data: ast::Data<FieldReceiver, ()>,
-    default_code: u16,
 }
 
 impl ToTokens for BaseReceiver {
@@ -23,17 +22,17 @@ impl ToTokens for BaseReceiver {
         let BaseReceiver {
             ref ident,
             ref data,
-            default_code,
         } = *self;
 
         let fields = data.as_ref().take_enum().expect("Should never be enum");
         let mut code_tokens = Vec::<TokenStream>::new();
         let mut message_tokens = Vec::<TokenStream>::new();
+        let mut error_tokens = Vec::<TokenStream>::new();
 
         fields.into_iter().for_each(|f| {
             let field_ident = &f.ident;
 
-            let var = match &f.fields.style {
+            let is_tuple = match &f.fields.style {
                 ast::Style::Tuple => {
                     quote! { (_) }
                 }
@@ -42,7 +41,13 @@ impl ToTokens for BaseReceiver {
 
             if let Some(code) = f.code {
                 code_tokens.push(quote! {
-                    Self::#field_ident #var => #code,
+                    Self::#field_ident #is_tuple => Some(#code),
+                });
+            }
+
+            if let Some(error) = f.error {
+                error_tokens.push(quote! {
+                    Self::#field_ident #is_tuple => Some(#error),
                 });
             }
 
@@ -50,22 +55,28 @@ impl ToTokens for BaseReceiver {
                 let message = f.message.clone().unwrap();
 
                 message_tokens.push(quote! {
-                    Self::#field_ident #var => Some(#message),
+                    Self::#field_ident #is_tuple => Some(#message),
                 })
             }
         });
 
         tokens.extend(quote! {
             impl #ident {
-                pub fn http_code(&self) -> u16 {
+                pub fn http_code(&self) -> Option<u16> {
                     match &self {
                         #(#code_tokens)*
-                        _ => #default_code
+                        _ => None
                     }
                 }
                 pub fn http_message(&self) -> Option<&'static str> {
                     match &self {
                         #(#message_tokens)*
+                        _ => None
+                    }
+                }
+                pub fn http_error(&self) -> Option<u16> {
+                    match &self {
+                        #(#error_tokens)*
                         _ => None
                     }
                 }
@@ -81,6 +92,7 @@ struct FieldReceiver {
     fields: ast::Fields<FieldFieldReceiver>,
     code: Option<u16>,
     message: Option<String>,
+    error: Option<u16>,
 }
 
 #[derive(Debug, FromField)]

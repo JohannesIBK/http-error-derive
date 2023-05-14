@@ -1,6 +1,6 @@
 [package]
 name = "http-error-derive"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 authors = ["JohannesIBK <mail@greuter.dev>"]
 description = "Create an enum with error message and http code"
@@ -9,7 +9,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-syn = { version = "2" }
+syn = "2"
 quote = "1.0"
 darling = "0.20"
 proc-macro2 = "1"
