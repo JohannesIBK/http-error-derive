@@ -5,7 +5,6 @@
 use http_error_derive::HttpError;
 
 #[derive(HttpError)]
-#[http(default_code = 501)]
 enum ApiError {
     #[http(code = 401, message = "You must be logged in to access this resource")]
     Unauthorized,
