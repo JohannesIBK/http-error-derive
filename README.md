@@ -13,7 +13,7 @@ enum ApiError {
 }
 
 fn main() {
-    println!("{}", ApiError::Forbidden.http_code()); // 403u16
+    println!("{}", ApiError::Forbidden.http_code()); // Some(403u16)
     println!("{:?}", ApiError::Forbidden.http_message()); // Some("You have no permission to access this resource")
 }
 ```
