@@ -63,8 +63,6 @@ impl ToTokens for BaseReceiver {
             }
         });
 
-        println!("{:?}", ty);
-
         tokens.extend(quote! {
             impl #imp #ident #ty #wher {
                 pub fn http_code(&self) -> Option<u16> {
