@@ -14,6 +14,7 @@ pub fn parser(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 #[darling(attributes(http), supports(enum_any))]
 struct BaseReceiver {
     ident: syn::Ident,
+    generics: syn::Generics,
     data: ast::Data<FieldReceiver, ()>,
 }
 
@@ -21,9 +22,11 @@ impl ToTokens for BaseReceiver {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let BaseReceiver {
             ref ident,
+            ref generics,
             ref data,
         } = *self;
 
+        let (imp, ty, wher) = generics.split_for_impl();
         let fields = data.as_ref().take_enum().expect("Should never be enum");
         let mut code_tokens = Vec::<TokenStream>::new();
         let mut message_tokens = Vec::<TokenStream>::new();
@@ -60,8 +63,10 @@ impl ToTokens for BaseReceiver {
             }
         });
 
+        println!("{:?}", ty);
+
         tokens.extend(quote! {
-            impl #ident {
+            impl #imp #ident #ty #wher {
                 pub fn http_code(&self) -> Option<u16> {
                     match &self {
                         #(#code_tokens)*
