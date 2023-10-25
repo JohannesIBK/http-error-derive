@@ -35,22 +35,25 @@ impl ToTokens for BaseReceiver {
         fields.into_iter().for_each(|f| {
             let field_ident = &f.ident;
 
-            let is_tuple = match &f.fields.style {
+            let field_variant = match &f.fields.style {
                 ast::Style::Tuple => {
                     quote! { (_) }
+                }
+                ast::Style::Struct => {
+                    quote! { { .. } }
                 }
                 _ => quote! {},
             };
 
             if let Some(code) = f.code {
                 code_tokens.push(quote! {
-                    Self::#field_ident #is_tuple => Some(#code),
+                    Self::#field_ident #field_variant => Some(#code),
                 });
             }
 
             if let Some(error) = f.error {
                 error_tokens.push(quote! {
-                    Self::#field_ident #is_tuple => Some(#error),
+                    Self::#field_ident #field_variant => Some(#error),
                 });
             }
 
@@ -58,7 +61,7 @@ impl ToTokens for BaseReceiver {
                 let message = f.message.clone().unwrap();
 
                 message_tokens.push(quote! {
-                    Self::#field_ident #is_tuple => Some(#message),
+                    Self::#field_ident #field_variant => Some(#message),
                 })
             }
         });
